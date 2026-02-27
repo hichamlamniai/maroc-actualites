@@ -5,7 +5,7 @@ import NewsGrid from '@/components/NewsGrid';
 import CategoryNav from '@/components/CategoryNav';
 import Link from 'next/link';
 
-export const revalidate = 3600;
+export const revalidate = 900; // 15 minutes
 
 export default async function HomePage() {
   const latestArticles = await fetchLatestArticles(7);

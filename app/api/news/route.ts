@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { CATEGORIES, getCategoryBySlug } from '@/types/news';
+import { getCategoryBySlug } from '@/types/news';
 import { fetchArticlesByCategory, fetchLatestArticles, searchArticles } from '@/lib/newsApi';
 
-export const revalidate = 3600; // Cache 1h
+export const revalidate = 900; // Cache 15 min
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);

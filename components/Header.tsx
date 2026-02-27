@@ -4,13 +4,14 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CATEGORIES } from '@/types/news';
+import AutoRefresh from './AutoRefresh';
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       router.push(`/recherche?q=${encodeURIComponent(searchQuery.trim())}`);
@@ -20,13 +21,16 @@ export default function Header() {
   return (
     <header className="bg-morocco-red text-white shadow-lg sticky top-0 z-50">
       {/* Top bar */}
-      <div className="bg-morocco-dark py-1 px-4 text-xs text-center text-red-100">
-        {new Date().toLocaleDateString('fr-MA', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        })}
+      <div className="bg-morocco-dark py-1 px-4 text-xs flex items-center justify-between text-red-100">
+        <span>
+          {new Date().toLocaleDateString('fr-MA', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          })}
+        </span>
+        <AutoRefresh />
       </div>
 
       {/* Main header */}
