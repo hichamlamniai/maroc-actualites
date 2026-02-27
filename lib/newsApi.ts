@@ -14,7 +14,7 @@ const MOCK_ARTICLES: Article[] = [
       'Le Royaume du Maroc annonce un plan ambitieux pour atteindre 52% d\'énergie renouvelable d\'ici 2030, avec de nouveaux partenariats internationaux.',
     content:
       'Le Maroc continue d\'affirmer son leadership africain en matière d\'énergies propres...',
-    url: '#',
+    url: 'https://le360.ma/economie',
     urlToImage:
       'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=800&auto=format&fit=crop',
     publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
@@ -28,7 +28,7 @@ const MOCK_ARTICLES: Article[] = [
     description:
       'L\'aéroport de Casablanca enregistre plus de 10 millions de passagers en 2025, un record historique.',
     content: 'L\'ONDA annonce des chiffres record pour l\'aéroport Mohammed V...',
-    url: '#',
+    url: 'https://www.medias24.com/transport',
     urlToImage:
       'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&auto=format&fit=crop',
     publishedAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
@@ -43,7 +43,7 @@ const MOCK_ARTICLES: Article[] = [
     description:
       'Le Conseil du gouvernement a adopté plusieurs projets de loi relatifs à la réforme de l\'administration publique.',
     content: 'Lors de sa réunion hebdomadaire, le gouvernement a examiné...',
-    url: '#',
+    url: 'https://www.map.ma/fr/sections/politique',
     urlToImage:
       'https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=800&auto=format&fit=crop',
     publishedAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
@@ -57,7 +57,7 @@ const MOCK_ARTICLES: Article[] = [
     description:
       'Un nouveau partenariat stratégique entre le Maroc et l\'UE a été signé lors du sommet de Bruxelles.',
     content: 'Le Maroc et l\'Union Européenne ont signé un accord-cadre historique...',
-    url: '#',
+    url: 'https://ledesk.ma/politique',
     urlToImage:
       'https://images.unsplash.com/photo-1485811055483-1c09e64d4576?w=800&auto=format&fit=crop',
     publishedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
@@ -72,7 +72,7 @@ const MOCK_ARTICLES: Article[] = [
     description:
       'La 29e édition du Festival de Fès des Musiques Sacrées du Monde accueille des artistes de 40 pays.',
     content: 'Sous les étoiles de la cité spirituelle, le festival attire...',
-    url: '#',
+    url: 'https://telquel.ma/culture',
     urlToImage:
       'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop',
     publishedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
@@ -86,7 +86,7 @@ const MOCK_ARTICLES: Article[] = [
     description:
       'Trois productions marocaines figurent dans la sélection officielle du Festival de Cannes 2025.',
     content: 'La délégation marocaine au Festival de Cannes est plus forte que jamais...',
-    url: '#',
+    url: 'https://www.hespress.com/culture',
     urlToImage:
       'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800&auto=format&fit=crop',
     publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
@@ -101,7 +101,7 @@ const MOCK_ARTICLES: Article[] = [
     description:
       'La ville ocre remporte le prix de la meilleure destination touristique africaine aux World Travel Awards 2025.',
     content: 'Pour la troisième année consécutive, Marrakech s\'impose comme...',
-    url: '#',
+    url: 'https://www.visitmorocco.com/fr/voyage/marrakech',
     urlToImage:
       'https://images.unsplash.com/photo-1597212618440-806262de4f4b?w=800&auto=format&fit=crop',
     publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
@@ -115,7 +115,7 @@ const MOCK_ARTICLES: Article[] = [
     description:
       'Les arrivées touristiques dans la région de Drâa-Tafilalet ont augmenté de 35% en 2025.',
     content: 'Le sud marocain attire de plus en plus d\'aventuriers en quête d\'authenticité...',
-    url: '#',
+    url: 'https://www.visitmorocco.com/fr/voyage/merzouga',
     urlToImage:
       'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=800&auto=format&fit=crop',
     publishedAt: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString(),
@@ -130,7 +130,7 @@ const MOCK_ARTICLES: Article[] = [
     description:
       'Le Haut-Commissariat au Plan annonce une croissance économique de 3,8% pour le début de l\'année.',
     content: 'L\'économie marocaine confirme sa résilience avec des chiffres solides...',
-    url: '#',
+    url: 'https://www.leconomiste.com/economie',
     urlToImage:
       'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&auto=format&fit=crop',
     publishedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
@@ -144,7 +144,7 @@ const MOCK_ARTICLES: Article[] = [
     description:
       'L\'indice phare de la Bourse de Casablanca atteint un nouveau record historique porté par les valeurs bancaires.',
     content: 'Dans un contexte favorable, la Bourse de Casablanca continue sa progression...',
-    url: '#',
+    url: 'https://www.medias24.com/bourse',
     urlToImage:
       'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&auto=format&fit=crop',
     publishedAt: new Date(Date.now() - 7 * 60 * 60 * 1000).toISOString(),
@@ -159,7 +159,7 @@ const MOCK_ARTICLES: Article[] = [
     description:
       'L\'équipe nationale du Maroc s\'impose 2-0 face à la Tunisie et se qualifie pour les quarts de la CAN.',
     content: 'Dans un match tendu et dominé du début à la fin par les Lions de l\'Atlas...',
-    url: '#',
+    url: 'https://www.sport.ma/football/equipe-nationale',
     urlToImage:
       'https://images.unsplash.com/photo-1570498839593-e565b39455fc?w=800&auto=format&fit=crop',
     publishedAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
@@ -173,7 +173,7 @@ const MOCK_ARTICLES: Article[] = [
     description:
       'Les travaux de construction et de rénovation des stades marocains avancent à grande vitesse.',
     content: 'A quatre ans de la Coupe du Monde, le Maroc intensifie ses chantiers sportifs...',
-    url: '#',
+    url: 'https://www.hespress.com/sport',
     urlToImage:
       'https://images.unsplash.com/photo-1540747913346-19212a4cf528?w=800&auto=format&fit=crop',
     publishedAt: new Date(Date.now() - 10 * 60 * 60 * 1000).toISOString(),
@@ -188,7 +188,7 @@ const MOCK_ARTICLES: Article[] = [
     description:
       'L\'écosystème startup marocain explose avec 200 nouvelles entreprises technologiques créées en un an.',
     content: 'Le dynamisme de l\'écosystème numérique marocain ne se dément pas...',
-    url: '#',
+    url: 'https://le360.ma/techno',
     urlToImage:
       'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&auto=format&fit=crop',
     publishedAt: new Date(Date.now() - 9 * 60 * 60 * 1000).toISOString(),
@@ -202,7 +202,7 @@ const MOCK_ARTICLES: Article[] = [
     description:
       'Le ministère de la Transition Numérique dévoile la feuille de route nationale pour l\'intelligence artificielle.',
     content: 'Le Maroc s\'engage résolument dans la révolution de l\'intelligence artificielle...',
-    url: '#',
+    url: 'https://www.medias24.com/tech',
     urlToImage:
       'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&auto=format&fit=crop',
     publishedAt: new Date(Date.now() - 14 * 60 * 60 * 1000).toISOString(),
@@ -217,7 +217,7 @@ const MOCK_ARTICLES: Article[] = [
     description:
       'Le gouvernement annonce une hausse significative des dépenses éducatives pour améliorer la qualité de l\'enseignement.',
     content: 'Dans le cadre de la réforme du système éducatif, le gouvernement...',
-    url: '#',
+    url: 'https://le360.ma/societe',
     urlToImage:
       'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&auto=format&fit=crop',
     publishedAt: new Date(Date.now() - 11 * 60 * 60 * 1000).toISOString(),
@@ -231,7 +231,7 @@ const MOCK_ARTICLES: Article[] = [
     description:
       'La généralisation de l\'AMO progresse : 95% des Marocains bénéficient désormais d\'une couverture médicale.',
     content: 'Le chantier royal de la protection sociale porte ses fruits...',
-    url: '#',
+    url: 'https://www.map.ma/fr/sections/societe',
     urlToImage:
       'https://images.unsplash.com/photo-1584820927498-cfe5211fd8bf?w=800&auto=format&fit=crop',
     publishedAt: new Date(Date.now() - 20 * 60 * 60 * 1000).toISOString(),
