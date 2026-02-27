@@ -5,7 +5,7 @@ import NewsGrid from '@/components/NewsGrid';
 import CategoryNav from '@/components/CategoryNav';
 import Link from 'next/link';
 
-export const revalidate = 900; // 15 minutes
+export const revalidate = 1800; // 30 minutes
 
 export default async function HomePage() {
   const latestArticles = await fetchLatestArticles(7);
@@ -14,7 +14,7 @@ export default async function HomePage() {
   const categorySections = await Promise.all(
     CATEGORIES.slice(0, 4).map(async (cat) => ({
       category: cat,
-      articles: await fetchArticlesByCategory(cat, 3),
+      articles: await fetchArticlesByCategory(cat),
     }))
   );
 

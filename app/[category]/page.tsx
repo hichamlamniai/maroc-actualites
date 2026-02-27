@@ -5,7 +5,7 @@ import NewsGrid from '@/components/NewsGrid';
 import CategoryNav from '@/components/CategoryNav';
 import type { Metadata } from 'next';
 
-export const revalidate = 900; // 15 minutes
+export const revalidate = 1800; // 30 minutes
 
 export async function generateStaticParams() {
   return CATEGORIES.map((cat) => ({ category: cat.slug }));
@@ -31,7 +31,7 @@ export default async function CategoryPage({ params }: PageProps) {
 
   if (!cat) notFound();
 
-  const articles = await fetchArticlesByCategory(cat, 18);
+  const articles = await fetchArticlesByCategory(cat);
 
   return (
     <div>
