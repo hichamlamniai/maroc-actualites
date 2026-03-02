@@ -1,22 +1,22 @@
 /**
- * /api/cron/refresh — v2
+ * /api/cron/refresh
  *
- * Processus arrière-plan déclenché toutes les 30 min par Vercel Cron.
- * 1. Récupère les derniers articles depuis NewsAPI (ou mock)
- * 2. Valide chaque lien en vérifiant le <title> de la page
- * 3. Filtre les liens vides, supprimés ou redirigés
- * 4. Déclenche la revalidation ISR de toutes les pages
+ * Endpoint de rafraîchissement déclenché :
+ *  - Par Vercel Cron (1x/jour à 6h UTC — plan Hobby)
+ *  - Par cron-job.org ou tout service externe toutes les 30 min
  *
- * Sécurisé par CRON_SECRET (auto-injecté par Vercel sur les crons).
+ * Ce qu'il fait :
+ *  1. Invalide le cache ISR de toutes les pages (revalidatePath)
+ *  2. La prochaine visite re-fetche NewsAPI avec from=6_jours et tri par date
+ *
+ * Sécurisé par CRON_SECRET (header Authorization: Bearer <secret>).
+ * Sans secret configuré → accepté (pratique en dev et services externes).
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { CATEGORIES } from '@/types/news';
-import { fetchArticlesByCategory } from '@/lib/newsApi';
-import { validateArticles } from '@/lib/articleValidator';
 
-// Durée max de la fonction serverless (60s sur Vercel Pro, 10s sur Free)
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
@@ -25,7 +25,6 @@ export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
   const cronSecret = process.env.CRON_SECRET;
 
-  // En local (sans secret) ou avec le bon secret Vercel
   const isAuthorized =
     !cronSecret ||
     authHeader === `Bearer ${cronSecret}` ||
@@ -36,45 +35,20 @@ export async function GET(request: NextRequest) {
   }
 
   const startTime = Date.now();
-  const report: Record<string, { fetched: number; valid: number; rejected: number }> = {};
 
-  // ── Traitement par rubrique ───────────────────────────────────────────
-  for (const category of CATEGORIES) {
-    try {
-      // 1. Récupère les articles (NewsAPI ou mock)
-      const articles = await fetchArticlesByCategory(category);
-
-      // 2. Validation complète par titre de page
-      const validArticles = await validateArticles(articles, 10);
-
-      report[category.slug] = {
-        fetched: articles.length,
-        valid: validArticles.length,
-        rejected: articles.length - validArticles.length,
-      };
-    } catch {
-      report[category.slug] = { fetched: 0, valid: 0, rejected: 0 };
-    }
-  }
-
-  // ── Revalidation ISR de toutes les pages ─────────────────────────────
-  // Déclenche la re-génération des pages en arrière-plan
-  // (les visiteurs voient l'ancienne version jusqu'à la prochaine visite)
-  revalidatePath('/', 'layout');          // Homepage + layout global
+  // ── Invalidation ISR de toutes les pages ─────────────────────────────
+  // Force Next.js à re-fetcher NewsAPI (from=6 jours) à la prochaine visite
+  revalidatePath('/', 'layout');
   revalidatePath('/', 'page');
-
   for (const cat of CATEGORIES) {
     revalidatePath(`/${cat.slug}`, 'page');
   }
 
-  const duration = Date.now() - startTime;
-
   return NextResponse.json({
     status: 'ok',
     refreshedAt: new Date().toISOString(),
-    durationMs: duration,
-    categories: report,
-    totalValid: Object.values(report).reduce((sum, r) => sum + r.valid, 0),
-    totalRejected: Object.values(report).reduce((sum, r) => sum + r.rejected, 0),
+    durationMs: Date.now() - startTime,
+    message: 'Cache ISR invalidé — les pages seront régénérées à la prochaine visite',
+    categoriesInvalidated: CATEGORIES.map((c) => c.slug),
   });
 }

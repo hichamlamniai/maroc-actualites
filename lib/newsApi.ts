@@ -1,8 +1,14 @@
 import { Article, Category, CategorySlug } from '@/types/news';
 import { validateArticles } from '@/lib/articleValidator';
 
-const MAX_ARTICLES = 10;
-const FETCH_EXTRA  = 20;
+const MAX_ARTICLES = 10; // plafond par rubrique
+const MIN_ARTICLES = 6;  // minimum acceptable avant repli sur mock
+const FETCH_EXTRA  = 30; // articles fetchés pour avoir assez après filtrage
+
+// Retourne la date d'il y a 6 jours au format YYYY-MM-DD (filtre NewsAPI)
+function getSixDaysAgo(): string {
+  return new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+}
 
 // ── Validation d'URL (format uniquement — rapide, pour les articles mock) ─
 
@@ -16,17 +22,12 @@ function isUrlValid(url: string): boolean {
   }
 }
 
-// Pour les articles mock : remplace l'URL par une recherche Google News
-// (les URLs mock pointent vers des pages de section, pas des articles spécifiques)
+// Pour les articles mock : tri par date uniquement (fallback sans clé API)
 function filterMockArticles(articles: Article[]): Article[] {
   return articles
     .filter((a) => isUrlValid(a.url))
     .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
-    .slice(0, MAX_ARTICLES)
-    .map((a) => ({
-      ...a,
-      url: `https://news.google.com/search?q=${encodeURIComponent(a.title)}&hl=fr&gl=MA&ceid=MA:fr`,
-    }));
+    .slice(0, MAX_ARTICLES);
 }
 
 // Pour les articles NewsAPI : validation complète par titre de page + tri par date
@@ -861,40 +862,42 @@ function mapNewsAPIArticle(article: NewsAPIArticle, category: CategorySlug, inde
 
 export async function fetchArticlesByCategory(category: Category): Promise<Article[]> {
   const apiKey = process.env.NEWS_API_KEY;
-  const mockForCategory = () =>
+  const mockFallback = () =>
     filterMockArticles(MOCK_ARTICLES.filter((a) => a.category === category.slug));
 
-  if (!apiKey) return mockForCategory();
+  if (!apiKey) return mockFallback();
 
   try {
     const params = new URLSearchParams({
       q: category.newsApiQuery,
       language: 'fr',
+      from: getSixDaysAgo(),   // uniquement les 6 derniers jours
       sortBy: 'publishedAt',
-      pageSize: String(FETCH_EXTRA),
+      pageSize: String(FETCH_EXTRA), // 30 articles pour avoir ≥6 après validation
       apiKey,
     });
 
     const res = await fetch(`https://newsapi.org/v2/everything?${params}`, {
-      next: { revalidate: 1800 },
+      next: { revalidate: 1800 }, // cache Next.js 30 min
     });
 
     if (!res.ok) throw new Error(`NewsAPI error: ${res.status}`);
 
     const data: NewsAPIResponse = await res.json();
 
-    if (data.status !== 'ok' || !data.articles.length) return mockForCategory();
+    if (data.status !== 'ok' || !data.articles.length) return mockFallback();
 
     const candidates = data.articles
       .filter((a) => a.title && a.title !== '[Removed]' && a.url)
       .map((a, i) => mapNewsAPIArticle(a, category.slug, i));
 
-    // Validation complète par titre de page (vérifie contenu réel)
+    // Validation liens + tri par date → cible 6-10 articles
     const valid = await filterNewsApiArticles(candidates);
 
-    return valid.length >= 2 ? valid : mockForCategory();
+    // Si moins de MIN_ARTICLES (6) résultats valides → repli sur mock
+    return valid.length >= MIN_ARTICLES ? valid : mockFallback();
   } catch {
-    return mockForCategory();
+    return mockFallback();
   }
 }
 
@@ -902,15 +905,10 @@ export async function fetchLatestArticles(pageSize: number = 7): Promise<Article
   const apiKey = process.env.NEWS_API_KEY;
 
   if (!apiKey) {
-    const categories: CategorySlug[] = [
-      'general', 'politique', 'economie', 'sport',
-      'culture', 'tourisme', 'technologie', 'societe',
-    ];
-    const mixed: Article[] = [];
-    for (const cat of categories) {
-      mixed.push(...MOCK_ARTICLES.filter((a) => a.category === cat).slice(0, 2));
-      if (mixed.length >= pageSize * 2) break;
-    }
+    // Sans clé : 1-2 articles mock par rubrique triés par date
+    const mixed = [...MOCK_ARTICLES]
+      .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+      .slice(0, pageSize + 5);
     return filterMockArticles(mixed).slice(0, pageSize);
   }
 
@@ -918,6 +916,7 @@ export async function fetchLatestArticles(pageSize: number = 7): Promise<Article
     const params = new URLSearchParams({
       q: 'Maroc',
       language: 'fr',
+      from: getSixDaysAgo(),   // uniquement les 6 derniers jours
       sortBy: 'publishedAt',
       pageSize: String(FETCH_EXTRA),
       apiKey,
@@ -932,7 +931,11 @@ export async function fetchLatestArticles(pageSize: number = 7): Promise<Article
     const data: NewsAPIResponse = await res.json();
 
     if (data.status !== 'ok' || !data.articles.length) {
-      return filterMockArticles(MOCK_ARTICLES.slice(0, pageSize + 5)).slice(0, pageSize);
+      return filterMockArticles(
+        [...MOCK_ARTICLES]
+          .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+          .slice(0, pageSize + 5)
+      ).slice(0, pageSize);
     }
 
     const candidates = data.articles
@@ -943,7 +946,8 @@ export async function fetchLatestArticles(pageSize: number = 7): Promise<Article
     return valid.slice(0, pageSize);
   } catch {
     return filterMockArticles(
-      [...MOCK_ARTICLES].sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+      [...MOCK_ARTICLES]
+        .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
         .slice(0, pageSize + 5)
     ).slice(0, pageSize);
   }
