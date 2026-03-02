@@ -1,5 +1,5 @@
 /**
- * /api/cron/refresh
+ * /api/cron/refresh — v2
  *
  * Processus arrière-plan déclenché toutes les 30 min par Vercel Cron.
  * 1. Récupère les derniers articles depuis NewsAPI (ou mock)
@@ -13,7 +13,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { CATEGORIES } from '@/types/news';
-import { fetchArticlesByCategory, fetchLatestArticles } from '@/lib/newsApi';
+import { fetchArticlesByCategory } from '@/lib/newsApi';
 import { validateArticles } from '@/lib/articleValidator';
 
 // Durée max de la fonction serverless (60s sur Vercel Pro, 10s sur Free)
