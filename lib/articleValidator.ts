@@ -96,11 +96,6 @@ export async function validateArticleUrl(
       return { valid: false, reason: `Titre indique erreur : "${errorKw}"`, pageTitle };
     }
 
-    // Titre trop générique = redirection vers accueil sans contenu
-    const isGeneric =
-      GENERIC_TITLES.some((t) => pageTitleLower === t) ||
-      pageTitleLower.split(/[\s|–-]+/).length <= 2;
-
     // Vérifier si le titre de la page a au moins un mot en commun avec l'article
     const articleWords = articleTitle
       .toLowerCase()
@@ -109,10 +104,28 @@ export async function validateArticleUrl(
 
     const matchCount = articleWords.filter((w) => pageTitleLower.includes(w)).length;
 
+    // Titre trop générique = redirection vers accueil sans contenu
+    const isGeneric =
+      GENERIC_TITLES.some((t) => pageTitleLower === t) ||
+      pageTitleLower.split(/[\s|–-]+/).length <= 2;
+
     if (isGeneric && matchCount === 0) {
       return {
         valid: false,
         reason: 'Page redirigée vers accueil (titre générique, aucun mot en commun)',
+        pageTitle,
+      };
+    }
+
+    // Détection de page de section/rubrique : chemin URL trop court (ex: /culture, /sport)
+    // Un vrai article a généralement 2+ segments dans son chemin
+    const urlPathSegments = new URL(url).pathname.split('/').filter((s) => s.length > 0);
+    const isShallowPath = urlPathSegments.length <= 1;
+
+    if (isShallowPath && matchCount === 0) {
+      return {
+        valid: false,
+        reason: 'URL de section sans correspondance avec le titre de l\'article',
         pageTitle,
       };
     }

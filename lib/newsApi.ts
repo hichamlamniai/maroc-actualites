@@ -16,14 +16,23 @@ function isUrlValid(url: string): boolean {
   }
 }
 
-// Pour les articles mock : validation format uniquement (pas de requête HTTP)
+// Pour les articles mock : remplace l'URL par une recherche Google News
+// (les URLs mock pointent vers des pages de section, pas des articles spécifiques)
 function filterMockArticles(articles: Article[]): Article[] {
-  return articles.filter((a) => isUrlValid(a.url)).slice(0, MAX_ARTICLES);
+  return articles
+    .filter((a) => isUrlValid(a.url))
+    .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+    .slice(0, MAX_ARTICLES)
+    .map((a) => ({
+      ...a,
+      url: `https://news.google.com/search?q=${encodeURIComponent(a.title)}&hl=fr&gl=MA&ceid=MA:fr`,
+    }));
 }
 
-// Pour les articles NewsAPI : validation complète par titre de page
+// Pour les articles NewsAPI : validation complète par titre de page + tri par date
 async function filterNewsApiArticles(articles: Article[]): Promise<Article[]> {
-  return validateArticles(articles, MAX_ARTICLES);
+  const valid = await validateArticles(articles, MAX_ARTICLES);
+  return valid.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
 }
 
 // ── Articles mock enrichis (8 par rubrique) ───────────────────────────────
@@ -933,7 +942,10 @@ export async function fetchLatestArticles(pageSize: number = 7): Promise<Article
     const valid = await filterNewsApiArticles(candidates);
     return valid.slice(0, pageSize);
   } catch {
-    return filterMockArticles(MOCK_ARTICLES.slice(0, pageSize + 5)).slice(0, pageSize);
+    return filterMockArticles(
+      [...MOCK_ARTICLES].sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+        .slice(0, pageSize + 5)
+    ).slice(0, pageSize);
   }
 }
 
