@@ -1,11 +1,10 @@
 import { Article, Category, CategorySlug } from '@/types/news';
+import { validateArticles } from '@/lib/articleValidator';
 
 const MAX_ARTICLES = 10;
 const FETCH_EXTRA  = 20;
 
-// ── Validation d'URL ──────────────────────────────────────────────────────
-// On valide uniquement le FORMAT de l'URL (pas de requête HTTP).
-// Les requêtes HEAD côté serveur sont bloquées par la plupart des sites de presse (403/CORS).
+// ── Validation d'URL (format uniquement — rapide, pour les articles mock) ─
 
 function isUrlValid(url: string): boolean {
   if (!url || url === '#' || url === '') return false;
@@ -17,8 +16,14 @@ function isUrlValid(url: string): boolean {
   }
 }
 
-function filterValidArticles(articles: Article[]): Article[] {
+// Pour les articles mock : validation format uniquement (pas de requête HTTP)
+function filterMockArticles(articles: Article[]): Article[] {
   return articles.filter((a) => isUrlValid(a.url)).slice(0, MAX_ARTICLES);
+}
+
+// Pour les articles NewsAPI : validation complète par titre de page
+async function filterNewsApiArticles(articles: Article[]): Promise<Article[]> {
+  return validateArticles(articles, MAX_ARTICLES);
 }
 
 // ── Articles mock enrichis (8 par rubrique) ───────────────────────────────
@@ -847,10 +852,10 @@ function mapNewsAPIArticle(article: NewsAPIArticle, category: CategorySlug, inde
 
 export async function fetchArticlesByCategory(category: Category): Promise<Article[]> {
   const apiKey = process.env.NEWS_API_KEY;
+  const mockForCategory = () =>
+    filterMockArticles(MOCK_ARTICLES.filter((a) => a.category === category.slug));
 
-  if (!apiKey) {
-    return filterValidArticles(MOCK_ARTICLES.filter((a) => a.category === category.slug));
-  }
+  if (!apiKey) return mockForCategory();
 
   try {
     const params = new URLSearchParams({
@@ -869,23 +874,18 @@ export async function fetchArticlesByCategory(category: Category): Promise<Artic
 
     const data: NewsAPIResponse = await res.json();
 
-    if (data.status !== 'ok' || !data.articles.length) {
-      return filterValidArticles(MOCK_ARTICLES.filter((a) => a.category === category.slug));
-    }
+    if (data.status !== 'ok' || !data.articles.length) return mockForCategory();
 
-    const articles = data.articles
+    const candidates = data.articles
       .filter((a) => a.title && a.title !== '[Removed]' && a.url)
       .map((a, i) => mapNewsAPIArticle(a, category.slug, i));
 
-    const valid = filterValidArticles(articles);
+    // Validation complète par titre de page (vérifie contenu réel)
+    const valid = await filterNewsApiArticles(candidates);
 
-    if (valid.length < 2) {
-      return filterValidArticles(MOCK_ARTICLES.filter((a) => a.category === category.slug));
-    }
-
-    return valid;
+    return valid.length >= 2 ? valid : mockForCategory();
   } catch {
-    return filterValidArticles(MOCK_ARTICLES.filter((a) => a.category === category.slug));
+    return mockForCategory();
   }
 }
 
@@ -893,15 +893,16 @@ export async function fetchLatestArticles(pageSize: number = 7): Promise<Article
   const apiKey = process.env.NEWS_API_KEY;
 
   if (!apiKey) {
-    // Prend les 2 premiers articles de chaque catégorie pour la homepage
-    const perCategory = 2;
-    const categories: CategorySlug[] = ['general', 'politique', 'economie', 'sport', 'culture', 'tourisme', 'technologie', 'societe'];
+    const categories: CategorySlug[] = [
+      'general', 'politique', 'economie', 'sport',
+      'culture', 'tourisme', 'technologie', 'societe',
+    ];
     const mixed: Article[] = [];
     for (const cat of categories) {
-      mixed.push(...MOCK_ARTICLES.filter((a) => a.category === cat).slice(0, perCategory));
+      mixed.push(...MOCK_ARTICLES.filter((a) => a.category === cat).slice(0, 2));
       if (mixed.length >= pageSize * 2) break;
     }
-    return filterValidArticles(mixed).slice(0, pageSize);
+    return filterMockArticles(mixed).slice(0, pageSize);
   }
 
   try {
@@ -922,16 +923,17 @@ export async function fetchLatestArticles(pageSize: number = 7): Promise<Article
     const data: NewsAPIResponse = await res.json();
 
     if (data.status !== 'ok' || !data.articles.length) {
-      return filterValidArticles(MOCK_ARTICLES.slice(0, pageSize + 5)).slice(0, pageSize);
+      return filterMockArticles(MOCK_ARTICLES.slice(0, pageSize + 5)).slice(0, pageSize);
     }
 
-    const articles = data.articles
+    const candidates = data.articles
       .filter((a) => a.title && a.title !== '[Removed]' && a.url)
       .map((a, i) => mapNewsAPIArticle(a, 'general', i));
 
-    return filterValidArticles(articles).slice(0, pageSize);
+    const valid = await filterNewsApiArticles(candidates);
+    return valid.slice(0, pageSize);
   } catch {
-    return filterValidArticles(MOCK_ARTICLES.slice(0, pageSize + 5)).slice(0, pageSize);
+    return filterMockArticles(MOCK_ARTICLES.slice(0, pageSize + 5)).slice(0, pageSize);
   }
 }
 
@@ -944,7 +946,7 @@ export async function searchArticles(query: string, pageSize: number = 12): Prom
         a.title.toLowerCase().includes(query.toLowerCase()) ||
         a.description.toLowerCase().includes(query.toLowerCase())
     );
-    return filterValidArticles(results);
+    return filterMockArticles(results);
   }
 
   try {
@@ -964,11 +966,11 @@ export async function searchArticles(query: string, pageSize: number = 12): Prom
     const data: NewsAPIResponse = await res.json();
     if (data.status !== 'ok') return [];
 
-    return filterValidArticles(
-      data.articles
-        .filter((a) => a.title && a.title !== '[Removed]' && a.url)
-        .map((a, i) => mapNewsAPIArticle(a, 'general', i))
-    );
+    const candidates = data.articles
+      .filter((a) => a.title && a.title !== '[Removed]' && a.url)
+      .map((a, i) => mapNewsAPIArticle(a, 'general', i));
+
+    return filterNewsApiArticles(candidates);
   } catch {
     return [];
   }
